@@ -9,7 +9,7 @@
 
 #define MAXCHAR 1000
 
-// 784, 300, 10
+
 NeuralNetwork* network_create(int input, int hidden, int output, double lr) {
 	NeuralNetwork* net = malloc(sizeof(NeuralNetwork));
 	net->input = input;
@@ -24,6 +24,7 @@ NeuralNetwork* network_create(int input, int hidden, int output, double lr) {
 	net->output_weights = output_layer;
 	return net;
 }
+
 
 void network_train(NeuralNetwork* net, Matrix* input, Matrix* output) {
 	// Feed forward
@@ -106,6 +107,7 @@ void network_train(NeuralNetwork* net, Matrix* input, Matrix* output) {
 	matrix_free(hidden_errors);
 }
 
+
 void network_train_batch_imgs(NeuralNetwork* net, Img** imgs, int batch_size) {
 	for (int i = 0; i < batch_size; i++) {
 		if (i % 100 == 0) printf("Img No. %d\n", i);
@@ -119,12 +121,14 @@ void network_train_batch_imgs(NeuralNetwork* net, Img** imgs, int batch_size) {
 	}
 }
 
+
 Matrix* network_predict_img(NeuralNetwork* net, Img* img) {
 	Matrix* img_data = matrix_flatten(img->img_data, 0);
 	Matrix* res = network_predict(net, img_data);
 	matrix_free(img_data);
 	return res;
 }
+
 
 double network_predict_imgs(NeuralNetwork* net, Img** imgs, int n) {
 	int n_correct = 0;
@@ -135,14 +139,18 @@ double network_predict_imgs(NeuralNetwork* net, Img** imgs, int n) {
 		}
 		matrix_free(prediction);
 	}
-	return 1.0 * n_correct / n;
+	return (double)n_correct / (double)n;
 }
 
+
 Matrix* network_predict(NeuralNetwork* net, Matrix* input_data) {
+	
 	Matrix* hidden_inputs	= dot(net->hidden_weights, input_data);
-	Matrix* hidden_outputs = apply(sigmoid, hidden_inputs);
-	Matrix* final_inputs = dot(net->output_weights, hidden_outputs);
-	Matrix* final_outputs = apply(sigmoid, final_inputs);
+	Matrix* hidden_outputs 	= apply(sigmoid, hidden_inputs);
+
+	Matrix* final_inputs 	= dot(net->output_weights, hidden_outputs);
+	Matrix* final_outputs 	= apply(sigmoid, final_inputs);
+
 	Matrix* result = softmax(final_outputs);
 
 	matrix_free(hidden_inputs);
@@ -153,6 +161,8 @@ Matrix* network_predict(NeuralNetwork* net, Matrix* input_data) {
 	return result;
 }
 
+
+// Save weights from network training to disk
 void network_save(NeuralNetwork* net, char* file_string) {
 	mkdir(file_string, 0777);
 	// Write the descriptor file
@@ -168,6 +178,8 @@ void network_save(NeuralNetwork* net, char* file_string) {
 	chdir("-"); // Go back to the orignal directory
 }
 
+
+// Load mnist data from input path into model struct
 NeuralNetwork* network_load(char* file_string) {
 	NeuralNetwork* net = malloc(sizeof(NeuralNetwork));
 	char entry[MAXCHAR];
@@ -188,6 +200,8 @@ NeuralNetwork* network_load(char* file_string) {
 	return net;
 }
 
+
+// Display model parameters
 void network_print(NeuralNetwork* net) {
 	printf("# of Inputs: %d\n", net->input);
 	printf("# of Hidden: %d\n", net->hidden);
@@ -198,6 +212,8 @@ void network_print(NeuralNetwork* net) {
 	matrix_print(net->output_weights);
 }
 
+
+// Free up memory for the neutral net
 void network_free(NeuralNetwork *net) {
 	matrix_free(net->hidden_weights);
 	matrix_free(net->output_weights);
