@@ -8,7 +8,6 @@
 #include "matrix/matrix.h"
 #include "matrix/ops.h"
 
-
 #define IMAGES_USED_FOR_TRAINING (int)1000
 // #define IMAGES_USED_FOR_TRAINING (int)10000
 #define IMAGES_USED_FOR_TESTING (int)3000
@@ -18,6 +17,7 @@
 #define HIDDEN_NODES (int) 300
 #define OUTPUT_NODES (int) 10
 #define LEARNING_RATE (float)0.1f
+
 
 // Calculates wall-time in seconds
 double wtime( void )
@@ -60,6 +60,8 @@ void testing(void){
 }
 
 int main() {
+
+	double elapsed_train, elapsed_test;
 	srand(time(NULL));
 
 	// TRAIN NETWORK

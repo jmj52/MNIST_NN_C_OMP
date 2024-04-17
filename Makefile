@@ -6,7 +6,8 @@ OBJ = ${C_SOURCES:.c=.o}
 CFLAGS = -fopenmp
 
 MAIN = main
-CC = /usr/bin/gcc
+CC = cc
+# CC = /usr/bin/gcc
 LINKER = /usr/bin/ld
 
 run: ${MAIN}
