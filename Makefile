@@ -1,5 +1,3 @@
-# export LDFLAGS="-L/opt/homebrew/opt/libomp/lib"
-# export CPPFLAGS="-I/opt/homebrew/opt/libomp/include"
 C_SOURCES = $(wildcard matrix/*.c neural/*.c util/*.c *.c)
 HEADERS = $(wildcard matrix/*.h neural/*.h util/*.h *.h)
 OBJ = ${C_SOURCES:.c=.o}
@@ -10,8 +8,8 @@ CC = cc
 # CC = /usr/bin/gcc
 LINKER = /usr/bin/ld
 
-run: ${MAIN}
-	./${MAIN}
+# run: ${MAIN}
+# 	./${MAIN}
 
 main: ${OBJ}
 	${CC} ${LDFLAGS} ${CFLAGS} $^ -o $@ -lm
@@ -22,3 +20,4 @@ main: ${OBJ}
 
 clean:
 	rm matrix/*.o *.o neural/*.o util/*.o ${MAIN}
+	rm results/${MAIN}/*

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <omp.h>
+
 typedef struct {
 	double** entries;
 	int rows;

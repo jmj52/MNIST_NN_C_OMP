@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "util/img.h"
 #include "neural/activations.h"
 #include "neural/nn.h"
@@ -19,6 +20,18 @@
 #define LEARNING_RATE (float)0.1f
 
 
+// Determine save path per proc size
+char* get_disk_path(int number_of_threads){	
+	char str[2];
+	sprintf(str, "%d", number_of_threads);
+	char *path = malloc(20 * sizeof(char));
+	strcpy(path, "testing_net/proc_");
+	strcat(path, str);
+	strcat(path, "/");
+	return path;                
+}
+
+
 // Calculates wall-time in seconds
 double wtime( void )
 {
@@ -30,25 +43,32 @@ double wtime( void )
     return wtime;
 }
 
-// Trains the model of a set of images
-void training(void){
 
+// Trains the model of a set of images
+void training(int num_threads){
+
+	// Get unique path based on num_threads
+	char* path = get_disk_path(num_threads);
+	printf("path: %s\n", path);
+	
 	// Load training data and create model 
-	Img** imgs = csv_to_imgs("./data/mnist_test.csv", IMAGES_USED_FOR_TRAINING);
+	Img** imgs = csv_to_imgs("./data/mnist_train.csv", IMAGES_USED_FOR_TRAINING);
 	NeuralNetwork* net = network_create(INPUT_NODES, HIDDEN_NODES, OUTPUT_NODES, LEARNING_RATE);
 
-	// Free memory
+	// Train network and save learned weights to disk
 	network_train_batch_imgs(net, imgs, IMAGES_USED_FOR_TRAINING);
-	network_save(net, "testing_net");
+	network_save(net, path);
 }
 
 
 // Tests the trained model and reports accuracy
-void testing(void){
+void testing(int num_threads){
+
+	char* path = get_disk_path(num_threads);
 
 	// Load testing data and learned model parameters
 	Img** imgs = csv_to_imgs("data/mnist_test.csv", IMAGES_USED_FOR_TESTING);
-	NeuralNetwork* net = network_load("testing_net");
+	NeuralNetwork* net = network_load(path);
 	
 	// Score model accuracy
 	double score = network_predict_imgs(net, imgs, 1000);
@@ -59,20 +79,34 @@ void testing(void){
 	network_free(net);
 }
 
-int main() {
 
+int main(int argc, char *argv[]) {
+
+	int num_threads = atoi(argv[1]);
 	double elapsed_train, elapsed_test;
-	srand(time(NULL));
 
+	// Check if only one arg is provided
+    if (argc != 2) {  
+        printf("Usage: %s <integer>\n", argv[0]);  // Print usage if not correct
+        return 1;
+    }
+
+	srand(time(NULL));
+	
 	// TRAIN NETWORK
 	elapsed_train = wtime();
-	training();
-	printf("Training Network - Time elapsed = %g seconds.\n", wtime() - elapsed_train);
+	training(num_threads);
+#pragma omp parallel
+	if (omp_get_thread_num() == 0)
+	{
+		printf("omp num threads: %d\n", omp_get_num_threads());
+		printf("Training Network - Time elapsed = %g seconds.\n", wtime() - elapsed_train);
+	}
 
 	// TEST NETWORK
-	elapsed_test = wtime();
-	testing();
-	printf("Testing Network - Time elapsed = %g seconds.\n", wtime() - elapsed_test);
+	// elapsed_test = wtime();
+	// testing(num_threads);
+	// printf("Testing Network - Time elapsed = %g seconds.\n", wtime() - elapsed_test);
 
 	return 0;
 }

@@ -2,6 +2,7 @@
 
 #include "../matrix/matrix.h"
 #include "../util/img.h"
+#include <omp.h>
 
 typedef struct {
 	int input;
