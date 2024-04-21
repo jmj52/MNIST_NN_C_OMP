@@ -8,7 +8,7 @@ variant="main"
 script_path="./$variant"
 
 # Output directory
-output_dir="results/$variant"
+output_dir="results/$variant""_testing"
 
 # Create output directory if it doesn't exist
 mkdir -p "$output_dir"
@@ -17,7 +17,7 @@ mkdir -p "$output_dir"
 nodes=1
 tasks=1
 min_arg=1
-max_arg=1 # max threads
+max_arg=64 # max threads
 
 # Run parameters
 mem="16G"

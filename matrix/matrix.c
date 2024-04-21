@@ -88,7 +88,6 @@ Matrix* matrix_load(char* file_string) {
 	fgets(entry, MAXCHAR, file);
 	int cols = atoi(entry);
 	Matrix* m = matrix_create(rows, cols);
-# pragma omp parallel for collapse(2)
 	for (int i = 0; i < m->rows; i++) {
 		for (int j = 0; j < m->cols; j++) {
 			fgets(entry, MAXCHAR, file);

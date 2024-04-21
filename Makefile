@@ -20,5 +20,6 @@ main: ${OBJ}
 
 clean:
 	rm matrix/*.o *.o neural/*.o util/*.o ${MAIN}
-	rm results/${MAIN}/*
 	rm -r testing_net
+	rm results/${MAIN}_training/*
+	rm results/${MAIN}_testing/*

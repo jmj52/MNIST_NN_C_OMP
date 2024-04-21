@@ -194,7 +194,6 @@ NeuralNetwork* network_load(char* file_string) {
 	NeuralNetwork* net = malloc(sizeof(NeuralNetwork));
 	char entry[MAXCHAR];
 	chdir(file_string);
-
 	FILE* descriptor = fopen("descriptor", "r");
 	fgets(entry, MAXCHAR, descriptor);
 	net->input = atoi(entry);

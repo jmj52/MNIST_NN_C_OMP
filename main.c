@@ -9,8 +9,8 @@
 #include "matrix/matrix.h"
 #include "matrix/ops.h"
 
-#define IMAGES_USED_FOR_TRAINING (int)1000
-// #define IMAGES_USED_FOR_TRAINING (int)10000
+// #define IMAGES_USED_FOR_TRAINING (int)1000
+#define IMAGES_USED_FOR_TRAINING (int)10000
 #define IMAGES_USED_FOR_TESTING (int)3000
 
 // Model parameters
@@ -22,9 +22,9 @@
 
 // Determine save path per proc size
 char* get_disk_path(int number_of_threads){	
-	char str[2];
+	char str[4];
 	sprintf(str, "%d", number_of_threads);
-	char *path = malloc(20 * sizeof(char));
+	char *path = malloc(21 * sizeof(char));
 	strcpy(path, "testing_net/proc_");
 	strcat(path, str);
 	strcat(path, "/");
@@ -49,7 +49,6 @@ void training(int num_of_threads){
 
 	// Get unique path based on num_of_threads
 	char* path = get_disk_path(num_of_threads);
-	printf("disk_path: %s\n", path);
 	
 	// Load training data and create model 
 	Img** imgs = csv_to_imgs("./data/mnist_train.csv", IMAGES_USED_FOR_TRAINING);
@@ -69,7 +68,7 @@ void testing(int num_of_threads){
 	// Load testing data and learned model parameters
 	Img** imgs = csv_to_imgs("data/mnist_test.csv", IMAGES_USED_FOR_TESTING);
 	NeuralNetwork* net = network_load(path);
-	
+
 	// Score model accuracy
 	double score = network_predict_imgs(net, imgs, 1000);
 	printf("Score: %1.5f\n", score);
@@ -78,6 +77,7 @@ void testing(int num_of_threads){
 	imgs_free(imgs, IMAGES_USED_FOR_TESTING);
 	network_free(net);
 }
+
 
 // Accepts number of threads to use for parallelization
 // Trains and tests neural network on MNIST data 
@@ -96,23 +96,23 @@ int main(int argc, char *argv[]) {
 	num_of_threads = atoi(argv[1]);
 	printf("passed in num_of_threads: %d\n", num_of_threads);
 
+	srand(time(NULL));
+
 #pragma omp single
 	omp_set_num_threads(num_of_threads);
-
-	srand(time(NULL));
 	
-	// TRAIN NETWORK - Learned network values saved to disk
-	elapsed_train = wtime();
-	training(num_of_threads);
-	printf("Training Network - Time elapsed = %g seconds.\n", wtime() - elapsed_train);
+	// // TRAIN NETWORK - Learned network values saved to disk
+	// elapsed_train = wtime();
+	// training(num_of_threads);
+	// printf("Training Network - Time elapsed = %g seconds.\n", wtime() - elapsed_train);
+
+	// TEST NETWORK - Use learned network values from disk to compute accuracy of model
+	elapsed_test = wtime();
+	testing(num_of_threads);
+	printf("Testing Network - Time elapsed = %g seconds.\n", wtime() - elapsed_test);
 
 #pragma omp single
 		printf("omp_get_num_threads: %d\n", omp_get_num_threads());
-
-	// TEST NETWORK - Use learned network values from disk to compute accuracy of model
-	// elapsed_test = wtime();
-	// testing(num_of_threads);
-	// printf("Testing Network - Time elapsed = %g seconds.\n", wtime() - elapsed_test);
 
 	return 0;
 }

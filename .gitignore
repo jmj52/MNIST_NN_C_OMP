@@ -4,3 +4,4 @@
 *.txt
 main
 testing_net/*
+.venv/*
