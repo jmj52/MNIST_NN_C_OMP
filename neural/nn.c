@@ -10,6 +10,7 @@
 #define MAXCHAR 1000
 
 
+// Initialize empty neutral network structure
 NeuralNetwork* network_create(int input, int hidden, int output, double lr) {
 	NeuralNetwork* net = malloc(sizeof(NeuralNetwork));
 	net->input = input;
@@ -26,40 +27,43 @@ NeuralNetwork* network_create(int input, int hidden, int output, double lr) {
 }
 
 
+// Performs feed-forward calculations, determines output error, then updates model weights through back propagation
+// This network utilizes sigmoid as the activation function
 void network_train(NeuralNetwork* net, Matrix* input, Matrix* output) {
-	// Feed forward
-	Matrix* hidden_inputs	= dot(net->hidden_weights, input);
-	Matrix* hidden_outputs = apply(sigmoid, hidden_inputs);
-	Matrix* final_inputs = dot(net->output_weights, hidden_outputs);
-	Matrix* final_outputs = apply(sigmoid, final_inputs);
+	
+	// Feed-forward calculation using sigmoid activation function
+	Matrix* hidden_inputs	= dot(net->hidden_weights, input); 			// HIDDEN_NODES x INPUT_NODES * INPUT_NODES x 			 1	= HIDDEN_NODES x 1
+	Matrix* hidden_outputs 	= apply(sigmoid, hidden_inputs);
+	Matrix* final_inputs 	= dot(net->output_weights, hidden_outputs); // HIDDEN_NODES x 			1 *	    	  1 x OUTPUT_NODES 	= OUTPUT_NODES x 1
+	Matrix* final_outputs 	= apply(sigmoid, final_inputs);
 
-	// Find errors
-	Matrix* output_errors = subtract(output, final_outputs);
-	Matrix* transposed_mat = transpose(net->output_weights);
-	Matrix* hidden_errors = dot(transposed_mat, output_errors);
+	// Find model output error by comparing predicted value (feed-forward calculation) to actual value
+	Matrix* output_errors 	= subtract(output, final_outputs);
+	Matrix* transposed_mat 	= transpose(net->output_weights);
+	Matrix* hidden_errors 	= dot(transposed_mat, output_errors);
 	matrix_free(transposed_mat);
 
-	// Backpropogate
-	// output_weights = add(
-	//		 output_weights, 
-	//     scale(
-	// 			  net->lr, 
-	//			  dot(
-	// 		 			multiply(
-	// 						output_errors, 
-	//				  	sigmoidPrime(final_outputs)
-	//					), 
-	//					transpose(hidden_outputs)
-	// 				)
-	//		 )
-	// )
-	Matrix* sigmoid_primed_mat = sigmoidPrime(final_outputs);
-	Matrix* multiplied_mat = multiply(output_errors, sigmoid_primed_mat);
-	transposed_mat = transpose(hidden_outputs);
-	Matrix* dot_mat = dot(multiplied_mat, transposed_mat);
-	Matrix* scaled_mat = scale(net->learning_rate, dot_mat);
-	Matrix* added_mat = add(net->output_weights, scaled_mat);
 
+	// Back-propagation in two steps
+
+	// 1) Back-propagate to update output layer weights
+	Matrix* sigmoid_primed_mat;
+	Matrix* multiplied_mat;
+	Matrix* dot_mat;
+	Matrix* scaled_mat;
+	Matrix* added_mat;
+
+	// Calculate gradient (derivative) based on activation values and apply to error to determine size of step change
+	sigmoid_primed_mat 	= sigmoidPrime(final_outputs); 					// OUTPUT_NODES x 1
+	multiplied_mat 		= multiply(output_errors, sigmoid_primed_mat);	// OUTPUT_NODES x 			1  *	OUTPUT_NODES x 			1 	= OUTPUT_NODES x 1
+	
+	// Calculate adjustment to weights by applying dot product to determine how much of determined step change is needed per edge of previous layer's nodes
+	transposed_mat 		= transpose(hidden_outputs);					// 			  1 x HIDDEN_NODES
+	dot_mat 			= dot(multiplied_mat, transposed_mat);			// OUTPUT_NODES x 			1  *			   1 x HIDDEN_NODES = OUTPUT_NODES x HIDDEN_NODES
+	
+	// Scale adjustment by learning rate and update weight 
+	scaled_mat 			= scale(net->learning_rate, dot_mat); 			
+	added_mat 			= add(net->output_weights, scaled_mat);
 	matrix_free(net->output_weights); // Free the old weights before replacing
 	net->output_weights = added_mat;
 
@@ -69,26 +73,19 @@ void network_train(NeuralNetwork* net, Matrix* input, Matrix* output) {
 	matrix_free(dot_mat);
 	matrix_free(scaled_mat);
 
-	// hidden_weights = add(
-	// 	 net->hidden_weights,
-	// 	 scale (
-	//			net->learning_rate
-	//    	dot (
-	//				multiply(
-	//					hidden_errors,
-	//					sigmoidPrime(hidden_outputs)	
-	//				)
-	//				transpose(inputs)
-	//      )
-	// 	 )
-	// )
-	// Reusing variables after freeing memory
-	sigmoid_primed_mat = sigmoidPrime(hidden_outputs);
-	multiplied_mat = multiply(hidden_errors, sigmoid_primed_mat);
-	transposed_mat = transpose(input);
-	dot_mat = dot(multiplied_mat, transposed_mat);
-	scaled_mat = scale(net->learning_rate, dot_mat);
-	added_mat = add(net->hidden_weights, scaled_mat);
+	// 2) Back-propagate to update hidden layer weights
+
+	// Calculate gradient (derivative) based on activation values and apply to error to determine size of step change
+	sigmoid_primed_mat 	= sigmoidPrime(hidden_outputs);					
+	multiplied_mat 		= multiply(hidden_errors, sigmoid_primed_mat);
+
+	// Calculate adjustment to weights by applying dot product to determine how much of determined step change is needed per edge of previous layer's nodes
+	transposed_mat 		= transpose(input);
+	dot_mat 			= dot(multiplied_mat, transposed_mat);
+
+	// Scale adjustment by learning rate and update weight 
+	scaled_mat 			= scale(net->learning_rate, dot_mat);
+	added_mat 			= add(net->hidden_weights, scaled_mat);
 	matrix_free(net->hidden_weights); // Free the old hidden_weights before replacement
 	net->hidden_weights = added_mat; 
 
@@ -108,20 +105,29 @@ void network_train(NeuralNetwork* net, Matrix* input, Matrix* output) {
 }
 
 
+// Sequentially updates model values for each image in batch to train network 
 void network_train_batch_imgs(NeuralNetwork* net, Img** imgs, int batch_size) {
 	for (int i = 0; i < batch_size; i++) {
-		if (i % 100 == 0) printf("Img No. %d\n", i);
+		if (i % 100 == 0) printf("Img No. %d\n", i); // Helps visualize learning speed and progress
+		// Translate image into flatten matrix to match input layer
 		Img* cur_img = imgs[i];
 		Matrix* img_data = matrix_flatten(cur_img->img_data, 0); // 0 = flatten to column vector
+		
+		// Initialize output layer
 		Matrix* output = matrix_create(10, 1);
 		output->entries[cur_img->label][0] = 1; // Setting the result
+
+		// Run training step
 		network_train(net, img_data, output);
+
+		// Free up memory
 		matrix_free(output);
 		matrix_free(img_data);
 	}
 }
 
 
+// Determine prediction values based on network and provided image
 Matrix* network_predict_img(NeuralNetwork* net, Img* img) {
 	Matrix* img_data = matrix_flatten(img->img_data, 0);
 	Matrix* res = network_predict(net, img_data);
@@ -130,6 +136,8 @@ Matrix* network_predict_img(NeuralNetwork* net, Img* img) {
 }
 
 
+// Determine if prediction (max likelihood determined), is correct (matches label)
+// Returns correct prediction %
 double network_predict_imgs(NeuralNetwork* net, Img** imgs, int n) {
 	int n_correct = 0;
 	for (int i = 0; i < n; i++) {
@@ -143,14 +151,16 @@ double network_predict_imgs(NeuralNetwork* net, Img** imgs, int n) {
 }
 
 
-Matrix* network_predict(NeuralNetwork* net, Matrix* input_data) {
-	
-	Matrix* hidden_inputs	= dot(net->hidden_weights, input_data);
-	Matrix* hidden_outputs 	= apply(sigmoid, hidden_inputs);
+// Run calculations using trained model/net to determine final likelihood estimates
+Matrix* network_predict(NeuralNetwork* net, Matrix* input) {
 
-	Matrix* final_inputs 	= dot(net->output_weights, hidden_outputs);
+	// Feed-forward calculation using sigmoid activation function
+	Matrix* hidden_inputs	= dot(net->hidden_weights, input);			// HIDDEN_NODES x INPUT_NODES * INPUT_NODES x 			 1	= HIDDEN_NODES x 1
+	Matrix* hidden_outputs 	= apply(sigmoid, hidden_inputs);
+	Matrix* final_inputs 	= dot(net->output_weights, hidden_outputs); // HIDDEN_NODES x 			1 *	    	  1 x OUTPUT_NODES 	= OUTPUT_NODES x 1
 	Matrix* final_outputs 	= apply(sigmoid, final_inputs);
 
+	// Normalize predictions based on OUTPUT_NODES # of values
 	Matrix* result = softmax(final_outputs);
 
 	matrix_free(hidden_inputs);

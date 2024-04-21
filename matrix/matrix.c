@@ -17,6 +17,7 @@ Matrix* matrix_create(int row, int col) {
 }
 
 void matrix_fill(Matrix *m, int n) {
+#pragma omp parallel for collapse(2)	
 	for (int i = 0; i < m->rows; i++) {
 		for (int j = 0; j < m->cols; j++) {
 			m->entries[i][j] = n;
@@ -24,6 +25,8 @@ void matrix_fill(Matrix *m, int n) {
 	}
 }
 
+
+// Free up memory for a given matrix
 void matrix_free(Matrix *m) {
 	for (int i = 0; i < m->rows; i++) {
 		free(m->entries[i]);
@@ -33,6 +36,7 @@ void matrix_free(Matrix *m) {
 	m = NULL;
 }
 
+// Print values of matrix for testing
 void matrix_print(Matrix* m) {
 	printf("Rows: %d Columns: %d\n", m->rows, m->cols);
 	for (int i = 0; i < m->rows; i++) {
@@ -43,8 +47,17 @@ void matrix_print(Matrix* m) {
 	}
 }
 
+
+// Print values of matrix for testing
+void matrix_dimensions(Matrix* m) {
+	printf("Rows: %d Columns: %d\n", m->rows, m->cols);
+}
+
+
+// Returns a duplicated matrix
 Matrix* matrix_copy(Matrix* m) {
 	Matrix* mat = matrix_create(m->rows, m->cols);
+#pragma omp parallel for collapse(2)
 	for (int i = 0; i < m->rows; i++) {
 		for (int j = 0; j < m->cols; j++) {
 			mat->entries[i][j] = m->entries[i][j];
@@ -57,6 +70,7 @@ void matrix_save(Matrix* m, char* file_string) {
 	FILE* file = fopen(file_string, "w");
 	fprintf(file, "%d\n", m->rows);
 	fprintf(file, "%d\n", m->cols);
+#pragma omp parallel for collapse(2)
 	for (int i = 0; i < m->rows; i++) {
 		for (int j = 0; j < m->cols; j++) {
 			fprintf(file, "%.6f\n", m->entries[i][j]);
@@ -74,6 +88,7 @@ Matrix* matrix_load(char* file_string) {
 	fgets(entry, MAXCHAR, file);
 	int cols = atoi(entry);
 	Matrix* m = matrix_create(rows, cols);
+# pragma omp parallel for collapse(2)
 	for (int i = 0; i < m->rows; i++) {
 		for (int j = 0; j < m->cols; j++) {
 			fgets(entry, MAXCHAR, file);
@@ -92,12 +107,14 @@ double uniform_distribution(double low, double high) {
 	return low + (1.0 * (rand() % scaled_difference) / scale);
 }
 
+
 void matrix_randomize(Matrix* m, int n) {
 	// Pulling from a random distribution of 
 	// Min: -1 / sqrt(n)
 	// Max: 1 / sqrt(n)
 	double min = -1.0 / sqrt(n);
 	double max = 1.0 / sqrt(n);
+#pragma omp parallel for collapse (2)
 	for (int i = 0; i < m->rows; i++) {
 		for (int j = 0; j < m->cols; j++) {
 			m->entries[i][j] = uniform_distribution(min, max);
@@ -105,6 +122,7 @@ void matrix_randomize(Matrix* m, int n) {
 	}
 }
 
+// Returns the index of the max value in a flat matrix
 int matrix_argmax(Matrix* m) {
 	// Expects a Mx1 matrix
 	double max_score = 0;
@@ -118,6 +136,7 @@ int matrix_argmax(Matrix* m) {
 	return max_idx;
 }
 
+// Flattens m x n matrix into m x 1 or 1 x m based on axis argument
 Matrix* matrix_flatten(Matrix* m, int axis) {
 	// Axis = 0 -> Column Vector, Axis = 1 -> Row Vector
 	Matrix* mat;

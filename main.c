@@ -49,7 +49,7 @@ void training(int num_of_threads){
 
 	// Get unique path based on num_of_threads
 	char* path = get_disk_path(num_of_threads);
-	printf("path: %s\n", path);
+	printf("disk_path: %s\n", path);
 	
 	// Load training data and create model 
 	Img** imgs = csv_to_imgs("./data/mnist_train.csv", IMAGES_USED_FOR_TRAINING);
@@ -79,7 +79,8 @@ void testing(int num_of_threads){
 	network_free(net);
 }
 
-
+// Accepts number of threads to use for parallelization
+// Trains and tests neural network on MNIST data 
 int main(int argc, char *argv[]) {
 
 	int num_of_threads;
@@ -100,7 +101,7 @@ int main(int argc, char *argv[]) {
 
 	srand(time(NULL));
 	
-	// TRAIN NETWORK
+	// TRAIN NETWORK - Learned network values saved to disk
 	elapsed_train = wtime();
 	training(num_of_threads);
 	printf("Training Network - Time elapsed = %g seconds.\n", wtime() - elapsed_train);
@@ -108,7 +109,7 @@ int main(int argc, char *argv[]) {
 #pragma omp single
 		printf("omp_get_num_threads: %d\n", omp_get_num_threads());
 
-	// TEST NETWORK
+	// TEST NETWORK - Use learned network values from disk to compute accuracy of model
 	// elapsed_test = wtime();
 	// testing(num_of_threads);
 	// printf("Testing Network - Time elapsed = %g seconds.\n", wtime() - elapsed_test);

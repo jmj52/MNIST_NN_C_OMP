@@ -1,7 +1,6 @@
 #pragma once
 
 #include "matrix.h"
-#include <omp.h>
 
 Matrix* multiply(Matrix* m1, Matrix* m2);
 Matrix* add(Matrix* m1, Matrix* m2);
