@@ -45,10 +45,10 @@ double wtime( void )
 
 
 // Trains the model of a set of images
-void training(int num_threads){
+void training(int num_of_threads){
 
-	// Get unique path based on num_threads
-	char* path = get_disk_path(num_threads);
+	// Get unique path based on num_of_threads
+	char* path = get_disk_path(num_of_threads);
 	printf("path: %s\n", path);
 	
 	// Load training data and create model 
@@ -62,9 +62,9 @@ void training(int num_threads){
 
 
 // Tests the trained model and reports accuracy
-void testing(int num_threads){
+void testing(int num_of_threads){
 
-	char* path = get_disk_path(num_threads);
+	char* path = get_disk_path(num_of_threads);
 
 	// Load testing data and learned model parameters
 	Img** imgs = csv_to_imgs("data/mnist_test.csv", IMAGES_USED_FOR_TESTING);
@@ -82,7 +82,7 @@ void testing(int num_threads){
 
 int main(int argc, char *argv[]) {
 
-	int num_threads = atoi(argv[1]);
+	int num_of_threads;
 	double elapsed_train, elapsed_test;
 
 	// Check if only one arg is provided
@@ -91,21 +91,26 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+	// Set number of threads to be used from profiling batch script
+	num_of_threads = atoi(argv[1]);
+	printf("passed in num_of_threads: %d\n", num_of_threads);
+
+#pragma omp single
+	omp_set_num_threads(num_of_threads);
+
 	srand(time(NULL));
 	
 	// TRAIN NETWORK
 	elapsed_train = wtime();
-	training(num_threads);
-#pragma omp parallel
-	if (omp_get_thread_num() == 0)
-	{
-		printf("omp num threads: %d\n", omp_get_num_threads());
-		printf("Training Network - Time elapsed = %g seconds.\n", wtime() - elapsed_train);
-	}
+	training(num_of_threads);
+	printf("Training Network - Time elapsed = %g seconds.\n", wtime() - elapsed_train);
+
+#pragma omp single
+		printf("omp_get_num_threads: %d\n", omp_get_num_threads());
 
 	// TEST NETWORK
 	// elapsed_test = wtime();
-	// testing(num_threads);
+	// testing(num_of_threads);
 	// printf("Testing Network - Time elapsed = %g seconds.\n", wtime() - elapsed_test);
 
 	return 0;

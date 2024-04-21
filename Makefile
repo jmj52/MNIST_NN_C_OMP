@@ -4,7 +4,7 @@ OBJ = ${C_SOURCES:.c=.o}
 CFLAGS = -fopenmp
 
 MAIN = main
-CC = cc
+CC = gcc
 # CC = /usr/bin/gcc
 LINKER = /usr/bin/ld
 

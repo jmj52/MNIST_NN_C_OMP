@@ -33,16 +33,16 @@ do
     # Define output files and running args
     time_file="$working_directory/$output_dir/time_$suffix.txt"
     log_file="$working_directory/$output_dir/output_$suffix.txt"
-    call="srun -A c00698 -p general --mem=$mem --nodes=$nodes --ntasks-per-node=$tasks ./$variant $thr"
+    call="srun -A c00698 -p general --mem=$mem --nodes=$nodes --ntasks-per-node=$tasks $working_directory/$variant $thr"
     
     # Run and save output to log file, no time file used
-    echo "Running $script_path with OMP_NUM_THREADS=$OMP_NUM_THREADS, saving output info to $log_file" 
+    echo "Running $variant with OMP_NUM_THREADS=$OMP_NUM_THREADS, saving output info to $log_file" 
     $call > $log_file
 
     # Run and save output to log file, time info saved to time_file. 
     # This has issues as the time_info varies depending on when resources get allocated
     # TODO: Log time accurately to output file
-    # echo "Running $script_path with OMP_NUM_THREADS=$OMP_NUM_THREADS, saving time info to $time_file" 
+    # echo "Running $variant with OMP_NUM_THREADS=$OMP_NUM_THREADS, saving time info to $time_file" 
     # /usr/bin/time -o "$time_file" -f "Time: %E\nCPU: %P\nMem: %M KB\nSts: %x" $call > "$output_dir/output_$suffix.txt"
 done
 
