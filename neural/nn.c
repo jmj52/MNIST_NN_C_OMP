@@ -45,7 +45,6 @@ void network_train(NeuralNetwork* net, Matrix* input, Matrix* output) {
 
 
 	// Back-propagation in two steps
-
 	// 1) Back-propagate to update output layer weights
 	Matrix* sigmoid_primed_mat;
 	Matrix* multiplied_mat;
@@ -73,8 +72,8 @@ void network_train(NeuralNetwork* net, Matrix* input, Matrix* output) {
 	matrix_free(dot_mat);
 	matrix_free(scaled_mat);
 
-	// 2) Back-propagate to update hidden layer weights
 
+	// 2) Back-propagate to update hidden layer weights
 	// Calculate gradient (derivative) based on activation values and apply to error to determine size of step change
 	sigmoid_primed_mat 	= sigmoidPrime(hidden_outputs);					
 	multiplied_mat 		= multiply(hidden_errors, sigmoid_primed_mat);

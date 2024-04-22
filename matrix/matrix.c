@@ -5,6 +5,8 @@
 
 #define MAXCHAR 100
 
+
+// Create a blank matrix in memory
 Matrix* matrix_create(int row, int col) {
 	Matrix *matrix = malloc(sizeof(Matrix));
 	matrix->rows = row;
@@ -16,6 +18,8 @@ Matrix* matrix_create(int row, int col) {
 	return matrix;
 }
 
+
+// Replace all values in matrix with a given constant
 void matrix_fill(Matrix *m, int n) {
 #pragma omp parallel for collapse(2)	
 	for (int i = 0; i < m->rows; i++) {
@@ -35,6 +39,7 @@ void matrix_free(Matrix *m) {
 	free(m);
 	m = NULL;
 }
+
 
 // Print values of matrix for testing
 void matrix_print(Matrix* m) {
@@ -66,6 +71,8 @@ Matrix* matrix_copy(Matrix* m) {
 	return mat;
 }
 
+
+// Save learning network values from matrix to file
 void matrix_save(Matrix* m, char* file_string) {
 	FILE* file = fopen(file_string, "w");
 	fprintf(file, "%d\n", m->rows);
@@ -80,6 +87,8 @@ void matrix_save(Matrix* m, char* file_string) {
 	fclose(file);
 }
 
+
+// Load learning network values from matrix to file
 Matrix* matrix_load(char* file_string) {
 	FILE* file = fopen(file_string, "r");
 	char entry[MAXCHAR]; 
@@ -99,14 +108,17 @@ Matrix* matrix_load(char* file_string) {
 	return m;
 }
 
+
+// Return a randomized value based on the provided range
 double uniform_distribution(double low, double high) {
-	double difference = high - low; // The difference between the two
+	double difference = high - low;
 	int scale = 10000;
 	int scaled_difference = (int)(difference * scale);
 	return low + (1.0 * (rand() % scaled_difference) / scale);
 }
 
 
+// Initialize matrix to random values
 void matrix_randomize(Matrix* m, int n) {
 	// Pulling from a random distribution of 
 	// Min: -1 / sqrt(n)
@@ -121,6 +133,7 @@ void matrix_randomize(Matrix* m, int n) {
 	}
 }
 
+
 // Returns the index of the max value in a flat matrix
 int matrix_argmax(Matrix* m) {
 	// Expects a Mx1 matrix
@@ -134,6 +147,7 @@ int matrix_argmax(Matrix* m) {
 	}
 	return max_idx;
 }
+
 
 // Flattens m x n matrix into m x 1 or 1 x m based on axis argument
 Matrix* matrix_flatten(Matrix* m, int axis) {
