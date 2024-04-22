@@ -8,7 +8,8 @@ variant="main"
 script_path="./$variant"
 
 # Output directory
-output_dir="results/$variant""_testing"
+output_dir="results/$variant""_training"
+# output_dir="results/$variant""_testing"
 
 # Create output directory if it doesn't exist
 mkdir -p "$output_dir"
@@ -37,8 +38,8 @@ do
     # Define output files and running args
     time_file="$working_directory/$output_dir/time_$suffix.txt"
     log_file="$working_directory/$output_dir/output_$suffix.txt"
-    call="$working_directory/$variant $thr"
-    # call="srun -A c00698 -p general --mem=$mem --nodes=$nodes --ntasks-per-node=$tasks $working_directory/$variant $thr"
+    # call="$working_directory/$variant $thr"
+    call="srun -A c00698 -p general --mem=$mem --nodes=$nodes --ntasks-per-node=$tasks $working_directory/$variant $thr"
     
     # Run and save output to log file, no time file used
     echo "Running $variant with OMP_NUM_THREADS=$OMP_NUM_THREADS, saving output info to $log_file" 

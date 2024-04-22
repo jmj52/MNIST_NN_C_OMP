@@ -97,22 +97,16 @@ int main(int argc, char *argv[]) {
 	printf("passed in num_of_threads: %d\n", num_of_threads);
 
 	srand(time(NULL));
-
-#pragma omp single
-	omp_set_num_threads(num_of_threads);
 	
 	// // TRAIN NETWORK - Learned network values saved to disk
-	// elapsed_train = wtime();
-	// training(num_of_threads);
-	// printf("Training Network - Time elapsed = %g seconds.\n", wtime() - elapsed_train);
+	elapsed_train = wtime();
+	training(num_of_threads);
+	printf("Training Network - Time elapsed = %g seconds.\n", wtime() - elapsed_train);
 
 	// TEST NETWORK - Use learned network values from disk to compute accuracy of model
-	elapsed_test = wtime();
-	testing(num_of_threads);
-	printf("Testing Network - Time elapsed = %g seconds.\n", wtime() - elapsed_test);
-
-#pragma omp single
-		printf("omp_get_num_threads: %d\n", omp_get_num_threads());
+	// elapsed_test = wtime();
+	// testing(num_of_threads);
+	// printf("Testing Network - Time elapsed = %g seconds.\n", wtime() - elapsed_test);
 
 	return 0;
 }

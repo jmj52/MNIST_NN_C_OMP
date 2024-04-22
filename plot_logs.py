@@ -4,8 +4,8 @@ from pathlib import Path
 PLOT = True
 
 # parse out values based on filter
-# procedure = "Training"
-procedure = "Testing"
+procedure = "Training"
+# procedure = "Testing"
 filtered_param = f"{procedure} Network - Time elapsed = "
 values = {2**i:0 for i in range(0,7)}
 
